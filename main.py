@@ -18,7 +18,7 @@ browser.maximize_window()
 subject = input("Enter the first 3 letters of the subject: ")
 courseNum = input("Enter course number: ")
 secNum = input("Enter section number: ")
-#FIXME: Check for non-existent course numbers/section numbers
+#FIXME: Check for non-existent course numbers/section numbers/subjects
 phoneNum = input("Enter your phone number (must be in the format 6473609346): ")
 
 inputSubject = browser.find_element_by_id("inputSubject")
@@ -44,7 +44,7 @@ while isFull:
     print(isFull)
 
 message = client.messages.create(
-    body = "Hurry!, " + subject.upper() + ' ' + courseNum + ' Section ' + secNum + " is No Longer Full! Register at student.uwo.ca",
+    body = "Hurry!, " + subject.upper() + ' ' + courseNum + ' Section ' + secNum + " is No Longer Full! Register now at student.uwo.ca",
     from_ = '+16473609346',
     to = '+1' + phoneNum
 )
