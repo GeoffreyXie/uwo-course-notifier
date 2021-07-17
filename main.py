@@ -9,14 +9,6 @@ account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 client = Client(account_sid, auth_token)
 
-message = client.messages.create(
-    body = "Hi there",
-    from_ = '+16473609346',
-    to = '+16046529466'
-)
-
-print(message.sid)
-
 isFull = True
 
 browser = webdriver.Chrome(r"C:\Users\geoff\Downloads\chromedriver_win32\chromedriver.exe")
@@ -27,7 +19,7 @@ subject = input("Enter the first 3 letters of the subject: ")
 courseNum = input("Enter course number: ")
 secNum = input("Enter section number: ")
 #FIXME: Check for non-existent course numbers/section numbers
-#FIXME: Input Subject
+phoneNum = input("Enter your phone number (must be in the format 6473609346): ")
 
 inputSubject = browser.find_element_by_id("inputSubject")
 inputSubject.send_keys(subject + Keys.ENTER)
@@ -51,3 +43,10 @@ while isFull:
                     isFull = False
     print(isFull)
 
+message = client.messages.create(
+    body = "Hurry!, " + subject.upper() + ' ' + courseNum + ' Section ' + secNum + " is No Longer Full! Register at student.uwo.ca",
+    from_ = '+16473609346',
+    to = '+1' + phoneNum
+)
+
+browser.close()
