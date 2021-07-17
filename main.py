@@ -1,7 +1,21 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
+from twilio.rest import Client
 import time
+import os
+
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
+client = Client(account_sid, auth_token)
+
+message = client.messages.create(
+    body = "Hi there",
+    from_ = '+16473609346',
+    to = '+16046529466'
+)
+
+print(message.sid)
 
 isFull = True
 
