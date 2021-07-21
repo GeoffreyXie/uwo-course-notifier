@@ -1,13 +1,17 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
-#from twilio.rest import Client
+from twilio.rest import Client
 from flask import Flask
 from flask import request
 import time
 import os
 
 app = Flask(__name__)
+
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
+client = Client(account_sid, auth_token)
 
 output = ""
 
@@ -40,6 +44,7 @@ def index():
     )
 
 def checker(subject, course, section, phone):
+    global output
     isFull = True
     browser = webdriver.Chrome(r"C:\Users\geoff\Downloads\chromedriver_win32\chromedriver.exe")
     browser.get("https://studentservices.uwo.ca/secure/timetables/mastertt/ttindex.cfm")
@@ -49,8 +54,12 @@ def checker(subject, course, section, phone):
 
     inputCourseNum = browser.find_element_by_id("inputCatalognbr")
     inputCourseNum.send_keys(course + Keys.ENTER)
-    rows = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr"))
-    cols = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[1]/td"))
+    try:
+        rows = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr"))
+        cols = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[1]/td"))
+    except:
+        output += "ERROR1"
+#        return
 
     while isFull:
         try:
@@ -63,13 +72,21 @@ def checker(subject, course, section, phone):
                             browser.refresh()
                         else:
                             isFull = False
-        except:
-            print("damn")
-        global output
+        except Exception as e:
+            output += "ERROR2"
+            print(e)
+#            return
         output += str(isFull)
-        print(isFull)
+        print(str(isFull) + course)
         if isFull:
             time.sleep(10)
+    
+    message = client.messages.create(
+    body = "Hurry! " + subject.upper() + ' ' + course + ' Section ' + section + " is No Longer Full! Register now at student.uwo.ca",
+    from_ = '+16473609346',
+    to = '+1' + phone
+    )
+    
     browser.close()
 
 if __name__ == "__main__":
