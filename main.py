@@ -9,12 +9,16 @@ import os
 
 app = Flask(__name__)
 
+output = ""
+
 @app.route("/")
 def index():
     subject = request.args.get("subject", "")
     course = request.args.get("course", "")
     section = request.args.get("section", "")
     phone = request.args.get("phone", "")
+    if phone:
+        checker(subject, course, section, phone)
     #FIXME: Check for non-existent course numbers/section numbers/subjects
     return ("""<form action="" method="get">
                 First 3 letters of subject (e.g KIN):
@@ -31,6 +35,8 @@ def index():
                 <br>
                 <input type="submit" value="Monitor">
               </form>"""
+              + "Output: "
+              + output
     )
 
 def checker(subject, course, section, phone):
@@ -56,10 +62,11 @@ def checker(subject, course, section, phone):
                         browser.refresh()
                     else:
                         isFull = False
-        print(isFull)
+        global output
+        output += str(isFull)
         if isFull:
-            time.sleep(2)
-        browser.close()
+            time.sleep(10)
+    browser.close()
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=8080, debug=True)
