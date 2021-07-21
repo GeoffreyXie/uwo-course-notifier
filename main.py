@@ -1,52 +1,65 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
-from twilio.rest import Client
+#from twilio.rest import Client
+from flask import Flask
+from flask import request
 import time
 import os
 
-account_sid = os.environ['TWILIO_ACCOUNT_SID']
-auth_token = os.environ['TWILIO_AUTH_TOKEN']
-client = Client(account_sid, auth_token)
+app = Flask(__name__)
 
-isFull = True
+@app.route("/")
+def index():
+    subject = request.args.get("subject", "")
+    course = request.args.get("course", "")
+    section = request.args.get("section", "")
+    phone = request.args.get("phone", "")
+    #FIXME: Check for non-existent course numbers/section numbers/subjects
+    return ("""<form action="" method="get">
+                First 3 letters of subject (e.g KIN):
+                <input type="text" name="subject">
+                <br>
+                Course number (e.g. 2000B):
+                <input type="text" name="course">
+                <br>
+                Section number (e.g. 200):
+                <input type="text" name="section"> MUST BE 3 DIGITS
+                <br>
+                Phone number (e.g. 6471231234)
+                <input type="text" name="phone">
+                <br>
+                <input type="submit" value="Monitor">
+              </form>"""
+    )
 
-browser = webdriver.Chrome(r"C:\Users\geoff\Downloads\chromedriver_win32\chromedriver.exe")
-browser.get("https://studentservices.uwo.ca/secure/timetables/mastertt/ttindex.cfm")
-browser.maximize_window()
+def checker(subject, course, section, phone):
+    isFull = True
+    browser = webdriver.Chrome(r"C:\Users\geoff\Downloads\chromedriver_win32\chromedriver.exe")
+    browser.get("https://studentservices.uwo.ca/secure/timetables/mastertt/ttindex.cfm")
+    browser.maximize_window()
+    inputSubject = browser.find_element_by_id("inputSubject")
+    inputSubject.send_keys(subject + Keys.ENTER)
 
-subject = input("Enter the first 3 letters of the subject: ")
-courseNum = input("Enter course number: ")
-secNum = input("Enter section number: ")
-#FIXME: Check for non-existent course numbers/section numbers/subjects
-phoneNum = input("Enter your phone number (must be in the format 6473609346): ")
+    inputCourseNum = browser.find_element_by_id("inputCatalognbr")
+    inputCourseNum.send_keys(course + Keys.ENTER)
+    rows = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr"))
+    cols = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[1]/td"))
 
-inputSubject = browser.find_element_by_id("inputSubject")
-inputSubject.send_keys(subject + Keys.ENTER)
+    while isFull:
+        for r in range(1, rows+1):
+            for p in range(1, cols+1):
+                value = browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[" + str(p) + "]")
+                if value.text == section:
+                    if browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[10]").text == "Full":
+                        isFull = True
+                        browser.refresh()
+                    else:
+                        isFull = False
+        print(isFull)
+        if isFull:
+            time.sleep(2)
+        browser.close()
 
-inputCourseNum = browser.find_element_by_id("inputCatalognbr")
-inputCourseNum.send_keys(courseNum + Keys.ENTER)
-
-rows = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr"))
-cols = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[1]/td"))
-
-while isFull:
-    for r in range(1, rows+1):
-        for p in range(1, cols+1):
-            value = browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[" + str(p) + "]")
-            if value.text == secNum:
-                if browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[10]").text == "Full":
-                    isFull = True
-                    browser.refresh()
-                    time.sleep(5)
-                else:
-                    isFull = False
-    print(isFull)
-
-message = client.messages.create(
-    body = "Hurry!, " + subject.upper() + ' ' + courseNum + ' Section ' + secNum + " is No Longer Full! Register now at student.uwo.ca",
-    from_ = '+16473609346',
-    to = '+1' + phoneNum
-)
-
-browser.close()
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=8080, debug=True)
