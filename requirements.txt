@@ -1,4 +1,9 @@
-Flask==2.0.1
+#Flask==2.0.1
+Flask==1.0.2
+gunicorn==19.9.0
 selenium==3.141.0
 twilio==6.62.0
-chromedriver_installer==2.4.2
+wheel==0.36.2
+#webdriver-manager==3.4.2
+chromedriver-binary==92.0.4515.43.0
+#chromedriver-binary==77.0.3865.40.0
