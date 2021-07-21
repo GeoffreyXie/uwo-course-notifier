@@ -49,6 +49,7 @@ def index():
                 <br>
                 <input type="submit" value="Monitor">
               </form>"""
+              + """If this web app has helped you please consider <a href="https://www.buymeacoffee.com/geoffreyxie">buying me a coffee :)</a> <br>"""
               + "Debug (you can ignore this): "
               + output
     )
