@@ -53,17 +53,21 @@ def checker(subject, course, section, phone):
     cols = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[1]/td"))
 
     while isFull:
-        for r in range(1, rows+1):
-            for p in range(1, cols+1):
-                value = browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[" + str(p) + "]")
-                if value.text == section:
-                    if browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[10]").text == "Full":
-                        isFull = True
-                        browser.refresh()
-                    else:
-                        isFull = False
+        try:
+            for r in range(1, rows+1):
+                for p in range(1, cols+1):
+                    value = browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[" + str(p) + "]")
+                    if value.text == section:
+                        if browser.find_element_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[" + str(r) + "]/td[10]").text == "Full":
+                            isFull = True
+                            browser.refresh()
+                        else:
+                            isFull = False
+        except:
+            print("damn")
         global output
         output += str(isFull)
+        print(isFull)
         if isFull:
             time.sleep(10)
     browser.close()
