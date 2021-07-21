@@ -4,14 +4,24 @@ from selenium.webdriver.support.wait import WebDriverWait
 from twilio.rest import Client
 from flask import Flask
 from flask import request
+#from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
+import chromedriver_binary
 
 app = Flask(__name__)
 
-account_sid = os.environ['TWILIO_ACCOUNT_SID']
-auth_token = os.environ['TWILIO_AUTH_TOKEN']
+#remember to clear before commit
+account_sid = #something
+auth_token = #secret
 client = Client(account_sid, auth_token)
+
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("window-size=1024,768")
+chrome_options.add_argument("--no-sandbox")
+
 
 output = ""
 
@@ -39,14 +49,15 @@ def index():
                 <br>
                 <input type="submit" value="Monitor">
               </form>"""
-              + "Output: "
+              + "Debug (you can ignore this): "
               + output
     )
 
 def checker(subject, course, section, phone):
     global output
     isFull = True
-    browser = webdriver.Chrome(r"C:\Users\geoff\Downloads\chromedriver_win32\chromedriver.exe")
+    #browser = webdriver.Chrome(ChromeDriverManager().install())
+    browser = webdriver.Chrome(chrome_options=chrome_options)
     browser.get("https://studentservices.uwo.ca/secure/timetables/mastertt/ttindex.cfm")
     browser.maximize_window()
     inputSubject = browser.find_element_by_id("inputSubject")
@@ -57,9 +68,10 @@ def checker(subject, course, section, phone):
     try:
         rows = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr"))
         cols = len(browser.find_elements_by_xpath("/html/body/div/div/div[3]/table[1]/tbody/tr[1]/td"))
-    except:
+    except Exception as e:
         output += "ERROR1"
-#        return
+        print(e)
+        return
 
     while isFull:
         try:
@@ -75,16 +87,16 @@ def checker(subject, course, section, phone):
         except Exception as e:
             output += "ERROR2"
             print(e)
-#            return
-        output += str(isFull)
+            return
+        output += str(isFull) + subject + course + ' '
         print(str(isFull) + course)
         if isFull:
-            time.sleep(10)
+            time.sleep(1800)
     
     message = client.messages.create(
-    body = "Hurry! " + subject.upper() + ' ' + course + ' Section ' + section + " is No Longer Full! Register now at student.uwo.ca",
-    from_ = '+16473609346',
-    to = '+1' + phone
+        body = "Hurry! " + subject.upper() + ' ' + course + ' Section ' + section + " is No Longer Full! Register now at student.uwo.ca",
+        from_ = '+16473609346',
+        to = '+1' + phone
     )
     
     browser.close()
